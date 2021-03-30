@@ -47,7 +47,7 @@ A GitHub Action that creates a versioning branch.
 
 ## Inputs
 
-The following table contains the inputs this action accepts. Please find the descriptions in the comments in the Usage section.
+The following table contains the inputs this action accepts. Please find the description for each in the [action.yml](action.yml).
 
 | Name                | Required | Default value                        |
 |---------------------|----------|--------------------------------------|
@@ -63,7 +63,7 @@ The following table contains the inputs this action accepts. Please find the des
 
 The following table contains the outputs of this action.
 
-| Name                | Default value                        |
+| Name                | Description                        |
 |---------------------|--------------------------------------|
 | base-branch         | The same value as the input.         |
 | base-version        | The version extracted from the top level package.json in the base-branch. |
@@ -77,6 +77,6 @@ Fortinet-provided scripts in this and other GitHub projects do not fall under th
 For direct issues, please refer to the [Issues](https://github.com/fortinet/github-action-version-branch/issues) tab of this GitHub project.
 For other questions related to this project, contact [github@fortinet.com](mailto:github@fortinet.com).
 
-# License
+## License
 
 [License](./LICENSE) © Fortinet Technologies. All rights reserved.
