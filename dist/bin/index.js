@@ -14049,20 +14049,29 @@ async function createVersioningBranch() {
     const baseBranch = core.getInput('base-branch') || '';
     const versionLevel = core.getInput('version-level') || '';
     const branchPrefix = core.getInput('name-prefix') || '';
-    const preId = core.getInput('pre-id') || '';
+    let preId = core.getInput('pre-id') || '';
     const customVersion = core.getInput('custom-version') || '';
+    console.log('inputs:');
+    console.log('----------');
     console.log('base-branch:', baseBranch);
     console.log('version-level:', versionLevel);
     console.log('name-prefix:', branchPrefix);
     console.log('pre-id:', preId);
     console.log('custom-version:', customVersion);
+    console.log('----------');
     // input validation
     if (!baseBranch) {
         throw new Error('Must provide base branch.');
     }
-    if (!['major', 'minor', 'patch', 'prerelease'].includes(versionLevel)) {
+    if (!customVersion && !['major', 'minor', 'patch', 'prerelease'].includes(versionLevel)) {
         throw new Error(`Invalid version-level: ${versionLevel}`);
     }
+    // validate custom version against semver
+    if (customVersion && !semver_1.default.valid(customVersion)) {
+        throw new Error(`Custom version: ${customVersion}, is invalid.`);
+    }
+    let releaseType;
+    let headVersion;
     // validate base branch (existing or not)
     try {
         await octokit.git.getRef({
@@ -14080,37 +14089,49 @@ async function createVersioningBranch() {
             throw error;
         }
     }
-    // validate against semver
-    if (customVersion && !semver_1.default.valid(customVersion)) {
-        throw new Error(`Custom version: ${customVersion}, is invalid.`);
-    }
     const basePackageJson = await fetchPackageJson(owner, repo, baseBranch);
     const baseVersion = basePackageJson.version;
     if (!semver_1.default.valid(baseVersion)) {
         throw new Error(`Base version: ${baseVersion}, is invalid.`);
     }
-    const isPrerelease = versionLevel === 'prerelease' || !!preId;
-    let releaseType;
-    switch (versionLevel) {
-        case 'prerelease':
-            releaseType = 'prerelease';
-            break;
-        case 'major':
-            releaseType = preId ? 'premajor' : 'major';
-            break;
-        case 'minor':
-            releaseType = preId ? 'preminor' : 'minor';
-            break;
-        case 'patch':
-        default:
-            releaseType = preId ? 'prepatch' : 'patch';
-            break;
+    if (customVersion) {
+        console.log('release type: custom');
+        headVersion = semver_1.default.parse(customVersion);
     }
-    console.log('release type: ', releaseType);
-    const newVersion = customVersion || semver_1.default.inc(baseVersion, releaseType, false, preId || null);
-    console.log('new version: ', newVersion);
+    else {
+        switch (versionLevel) {
+            case 'prerelease':
+                releaseType = 'prerelease';
+                break;
+            case 'major':
+                releaseType = preId ? 'premajor' : 'major';
+                break;
+            case 'minor':
+                releaseType = preId ? 'preminor' : 'minor';
+                break;
+            case 'patch':
+            default:
+                releaseType = preId ? 'prepatch' : 'patch';
+                break;
+        }
+        console.log('release type: ', releaseType);
+        headVersion = semver_1.default.parse(semver_1.default.inc(baseVersion, releaseType, false, preId || null));
+    }
+    console.log('head version: ', headVersion.version);
+    let prereleaseComponents = Array.from(semver_1.default.prerelease(headVersion)) || [];
+    const isPrerelease = prereleaseComponents.length > 0;
+    console.log('is prerelease: ', isPrerelease);
+    let preInc = ''; // the incremental part of the prerelease component.
+    if (isPrerelease) {
+        // preid could be a string, a pure number, or a combination of both.
+        console.log('prerelease components: ', ...prereleaseComponents);
+        preInc = prereleaseComponents.pop();
+        preId = prereleaseComponents.join('.');
+    }
+    console.log('pre-id: ', preId);
+    console.log('pre-inc: ', preInc);
     // create a branch reference
-    const headBranch = `${branchPrefix}${newVersion}`;
+    const headBranch = `${branchPrefix}${headVersion}`;
     console.log('Creating a reference: ', `heads/${headBranch}`);
     // get the head commit of the base branch in order to create a new branch on it
     const getCommitResponse = await octokit.repos.getCommit({
@@ -14155,8 +14176,14 @@ async function createVersioningBranch() {
     core.setOutput('base-branch', baseBranch);
     core.setOutput('base-version', baseVersion);
     core.setOutput('head-branch', headBranch);
-    core.setOutput('head-version', newVersion);
+    core.setOutput('head-version', headVersion.version);
+    core.setOutput('is-new-branch', headRefExists && 'false' || 'true');
     core.setOutput('is-prerelease', isPrerelease && 'true' || 'false');
+    core.setOutput('major', headVersion.major);
+    core.setOutput('minor', headVersion.minor);
+    core.setOutput('patch', headVersion.patch);
+    core.setOutput('pre-id', preId);
+    core.setOutput('pre-inc', preInc);
 }
 async function extractInfoFromPullRequest(prNumber) {
     const octokit = initOctokit();
