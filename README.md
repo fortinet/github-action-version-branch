@@ -11,7 +11,6 @@ If the `head branch` already exists, it returns the existing branch, otherwise, 
 
 The `head version` is resolved to a semver (see: [semver.org](semver.org)) with the given inputs. It returns details including: `major`, `minor`, `patch`, `pre-id`, `pre-num`, `is-prerelease`.
 
-
 ## Usage
 
 ```yaml

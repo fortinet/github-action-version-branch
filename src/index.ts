@@ -152,7 +152,6 @@ async function createVersioningBranch(): Promise<void> {
         repo: repo,
         ref: `refs/heads/${baseBranch}` // NOTE: must include 'refs/'
     });
-    console.log('get commit result: ', JSON.stringify(getCommitResponse, null, 4));
     // check if branch already exists
     let headRefExists: boolean;
     try {
@@ -231,8 +230,6 @@ async function extractInfoFromPullRequest(prNumber: number): Promise<void> {
 async function main(): Promise<void> {
     try {
         // Get the JSON webhook payload for the event that triggered the workflow
-        const payload = JSON.stringify(github.context.payload, null, 4);
-        console.log('payload:', payload);
         const prNumber: number = core.getInput('pr-number') && Number(core.getInput('pr-number')) || NaN;
         if (isNaN(prNumber)) {
             console.log('pull request number not provided.');
