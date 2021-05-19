@@ -82,6 +82,7 @@ The following table contains the outputs of this action.
 | patch               | The patch version of the new version. |
 | pre-id              | The non-incremental part of the new version, if it is a prerelase. |
 | pre-inc             | The incremental part of the new version, if it is a prerelase. |
+| package-name        | The node package name of the base branch. |
 
 ## Support
 
