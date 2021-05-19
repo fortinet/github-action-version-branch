@@ -144,7 +144,7 @@ async function createVersioningBranch(): Promise<void> {
     console.log('pre-inc: ', preInc);
 
     // create a branch reference
-    const headBranch = `${branchPrefix}${headVersion}`;
+    const headBranch = `${branchPrefix}${headVersion}_verbra`;
     console.log('Creating a reference: ', `heads/${headBranch}`);
     // get the head commit of the base branch in order to create a new branch on it
     const getCommitResponse = await octokit.repos.getCommit({
@@ -174,14 +174,13 @@ async function createVersioningBranch(): Promise<void> {
         console.log(`branch: ${headBranch}, already exists.`);
     } else {
         // create a branch ref on this commit
-        const createRefResponse = await octokit.git.createRef({
+        await octokit.git.createRef({
             owner: owner,
             repo: repo,
             ref: `refs/heads/${headBranch}`, // NOTE: must include 'refs/'
             sha: getCommitResponse.data.sha
         });
         console.log(`branch: ${headBranch}, created.`);
-        console.log('create ref result: ', JSON.stringify(createRefResponse, null, 4));
     }
 
     core.setOutput('base-branch', baseBranch);
@@ -210,6 +209,7 @@ async function extractInfoFromPullRequest(prNumber: number): Promise<void> {
 
     const baseBranch = pullrequest.data.base.ref;
     const headBranch = pullrequest.data.head.ref;
+    const isVersionBranch = headBranch.endsWith('_verbra');
 
     const basePackageJson: PackageJson = await fetchPackageJson(owner, repo, baseBranch);
     const baseVersion = basePackageJson.version as string;
@@ -225,6 +225,7 @@ async function extractInfoFromPullRequest(prNumber: number): Promise<void> {
     core.setOutput('head-branch', headBranch);
     core.setOutput('head-version', headVersion);
     core.setOutput('is-prerelease', isPrerelease && 'true' || 'false');
+    core.setOutput('is-version-branch', isVersionBranch && 'true' || 'false');
 }
 
 async function main(): Promise<void> {

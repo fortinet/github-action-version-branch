@@ -14,7 +14,7 @@ on:
       name-prefix:
         description: >-
           The name prefix to include in the new branch name.
-          The new branch name format is: <prefix><version>. Example: Rel_branchv1.0.0-rc.1
+          The new branch name format is: <prefix><version>_verbra. Example: Rel_branchv1.0.0-rc.1_verbra
           The version will be retrieved from the base-branch, bumped according to the version-level.
         required: false
         default: rel_
