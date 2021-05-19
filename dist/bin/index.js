@@ -14091,6 +14091,7 @@ async function createVersioningBranch() {
     }
     const basePackageJson = await fetchPackageJson(owner, repo, baseBranch);
     const baseVersion = basePackageJson.version;
+    const packageName = basePackageJson.name;
     if (!semver_1.default.valid(baseVersion)) {
         throw new Error(`Base version: ${baseVersion}, is invalid.`);
     }
@@ -14131,7 +14132,7 @@ async function createVersioningBranch() {
     console.log('pre-id: ', preId);
     console.log('pre-inc: ', preInc);
     // create a branch reference
-    const headBranch = `${branchPrefix}${headVersion}`;
+    const headBranch = `${branchPrefix}${headVersion}_verbra`;
     console.log('Creating a reference: ', `heads/${headBranch}`);
     // get the head commit of the base branch in order to create a new branch on it
     const getCommitResponse = await octokit.repos.getCommit({
@@ -14163,14 +14164,13 @@ async function createVersioningBranch() {
     }
     else {
         // create a branch ref on this commit
-        const createRefResponse = await octokit.git.createRef({
+        await octokit.git.createRef({
             owner: owner,
             repo: repo,
             ref: `refs/heads/${headBranch}`,
             sha: getCommitResponse.data.sha
         });
         console.log(`branch: ${headBranch}, created.`);
-        console.log('create ref result: ', JSON.stringify(createRefResponse, null, 4));
     }
     core.setOutput('base-branch', baseBranch);
     core.setOutput('base-version', baseVersion);
@@ -14180,6 +14180,7 @@ async function createVersioningBranch() {
     core.setOutput('is-prerelease', isPrerelease && 'true' || 'false');
     core.setOutput('major', headVersion.major);
     core.setOutput('minor', headVersion.minor);
+    core.setOutput('package-name', packageName);
     core.setOutput('patch', headVersion.patch);
     core.setOutput('pre-id', preId);
     core.setOutput('pre-inc', preInc);
@@ -14195,17 +14196,21 @@ async function extractInfoFromPullRequest(prNumber) {
     });
     const baseBranch = pullrequest.data.base.ref;
     const headBranch = pullrequest.data.head.ref;
+    const isVersionBranch = headBranch.endsWith('_verbra');
     const basePackageJson = await fetchPackageJson(owner, repo, baseBranch);
     const baseVersion = basePackageJson.version;
     const headPackageJson = await fetchPackageJson(owner, repo, headBranch);
     const headVersion = headPackageJson.version;
     const headSemver = semver_1.default.parse(headVersion);
     const isPrerelease = headSemver.prerelease.length > 0;
+    const packageName = basePackageJson.name;
     core.setOutput('base-branch', baseBranch);
     core.setOutput('base-version', baseVersion);
     core.setOutput('head-branch', headBranch);
     core.setOutput('head-version', headVersion);
     core.setOutput('is-prerelease', isPrerelease && 'true' || 'false');
+    core.setOutput('is-version-branch', isVersionBranch && 'true' || 'false');
+    core.setOutput('package-name', packageName);
 }
 async function main() {
     try {
@@ -14242,7 +14247,7 @@ module.exports = eval("require")("encoding");
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse("{\"name\":\"github-actions-version-branch\",\"version\":\"1.0.2\",\"description\":\"\",\"main\":\"dist/bin/index.js\",\"types\":\"dist/types\",\"scripts\":{\"bundle\":\"shx rm -rf dist/bin && ncc build out/index.js -so dist/bin\",\"compile\":\"shx rm -rf out && shx rm -rf dist/types && tsc\",\"make-dist\":\"npm run compile && npm run bundle\",\"test\":\"echo \\\"No test specified.\\\" && exit 0\",\"version\":\"npm run make-dist && git add .\"},\"repository\":{\"type\":\"git\",\"url\":\"git+https://github.com/fortinet/github-actions-version-branch.git\"},\"keywords\":[],\"author\":\"fortinet\",\"license\":\"MIT\",\"bugs\":{\"url\":\"https://github.com/fortinet/github-actions-version-branch/issues\"},\"homepage\":\"https://github.com/fortinet/github-actions-version-branch#readme\",\"dependencies\":{\"@actions/core\":\"^1.2.6\",\"@actions/github\":\"^4.0.0\",\"@types/node\":\"^14.14.35\",\"axios\":\"^0.21.1\",\"http-status-codes\":\"^2.1.4\",\"semver\":\"^7.3.5\",\"yaml\":\"^1.10.2\"},\"devDependencies\":{\"@types/semver\":\"^7.3.4\",\"@types/yaml\":\"^1.9.7\",\"@vercel/ncc\":\"^0.27.0\",\"eslint\":\"^7.22.0\",\"eslint-config-prettier\":\"^8.1.0\",\"eslint-plugin-prettier\":\"^3.3.1\",\"prettier\":\"^2.2.1\",\"shx\":\"^0.3.3\",\"typescript\":\"^4.2.3\"}}");
+module.exports = JSON.parse("{\"name\":\"github-actions-version-branch\",\"version\":\"1.1.0\",\"description\":\"\",\"main\":\"dist/bin/index.js\",\"types\":\"dist/types\",\"scripts\":{\"bundle\":\"shx rm -rf dist/bin && ncc build out/index.js -so dist/bin\",\"compile\":\"shx rm -rf out && shx rm -rf dist/types && tsc\",\"make-dist\":\"npm run compile && npm run bundle\",\"test\":\"echo \\\"No test specified.\\\" && exit 0\",\"version\":\"npm run make-dist && git add .\"},\"repository\":{\"type\":\"git\",\"url\":\"git+https://github.com/fortinet/github-actions-version-branch.git\"},\"keywords\":[],\"author\":\"fortinet\",\"license\":\"MIT\",\"bugs\":{\"url\":\"https://github.com/fortinet/github-actions-version-branch/issues\"},\"homepage\":\"https://github.com/fortinet/github-actions-version-branch#readme\",\"dependencies\":{\"@actions/core\":\"^1.2.6\",\"@actions/github\":\"^4.0.0\",\"@types/node\":\"^14.14.35\",\"axios\":\"^0.21.1\",\"http-status-codes\":\"^2.1.4\",\"semver\":\"^7.3.5\",\"yaml\":\"^1.10.2\"},\"devDependencies\":{\"@types/semver\":\"^7.3.4\",\"@types/yaml\":\"^1.9.7\",\"@vercel/ncc\":\"^0.27.0\",\"eslint\":\"^7.22.0\",\"eslint-config-prettier\":\"^8.1.0\",\"eslint-plugin-prettier\":\"^3.3.1\",\"prettier\":\"^2.2.1\",\"shx\":\"^0.3.3\",\"typescript\":\"^4.2.3\"}}");
 
 /***/ }),
 
