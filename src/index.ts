@@ -127,7 +127,7 @@ async function createVersioningBranch(): Promise<void> {
 
     console.log('head version: ', headVersion.version);
 
-    let prereleaseComponents = Array.from(semver.prerelease(headVersion)) || [];
+    let prereleaseComponents = Array.from(semver.prerelease(headVersion) || []);
 
     const isPrerelease = prereleaseComponents.length > 0;
 
