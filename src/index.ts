@@ -96,6 +96,7 @@ async function createVersioningBranch(): Promise<void> {
 
     const basePackageJson: PackageJson = await fetchPackageJson(owner, repo, baseBranch);
     const baseVersion = basePackageJson.version as string;
+    const packageName = basePackageJson.name;
 
     if (!semver.valid(baseVersion)) {
         throw new Error(`Base version: ${baseVersion}, is invalid.`);
@@ -191,6 +192,7 @@ async function createVersioningBranch(): Promise<void> {
     core.setOutput('is-prerelease', isPrerelease && 'true' || 'false');
     core.setOutput('major', headVersion.major);
     core.setOutput('minor', headVersion.minor);
+    core.setOutput('package-name', packageName);
     core.setOutput('patch', headVersion.patch);
     core.setOutput('pre-id', preId);
     core.setOutput('pre-inc', preInc);
@@ -220,12 +222,15 @@ async function extractInfoFromPullRequest(prNumber: number): Promise<void> {
     const headSemver = semver.parse(headVersion);
     const isPrerelease = headSemver.prerelease.length > 0;
 
+    const packageName = basePackageJson.name;
+
     core.setOutput('base-branch', baseBranch);
     core.setOutput('base-version', baseVersion);
     core.setOutput('head-branch', headBranch);
     core.setOutput('head-version', headVersion);
     core.setOutput('is-prerelease', isPrerelease && 'true' || 'false');
     core.setOutput('is-version-branch', isVersionBranch && 'true' || 'false');
+    core.setOutput('package-name', packageName);
 }
 
 async function main(): Promise<void> {
