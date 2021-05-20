@@ -17,9 +17,11 @@ interface PackageJson {
     [key: string]: string;
 }
 
-async function fetchPackageJson(owner: string, repo: string, branch: string): Promise<PackageJson> {
+async function fetchPackageJson(owner: string, repo: string, ref: string): Promise<PackageJson> {
     const basePackageJsonUrl = `https://raw.githubusercontent.com/` +
-        `${owner}/${repo}/${branch}/package.json`;
+        `${owner}/${repo}/${ref}/package.json`;
+
+    console.log(`reading file from: ${basePackageJsonUrl}`);
 
     const options: AxiosRequestConfig = {
         method: 'GET',
@@ -210,13 +212,18 @@ async function extractInfoFromPullRequest(prNumber: number): Promise<void> {
     });
 
     const baseBranch = pullrequest.data.base.ref;
+    const baseCommitHash = pullrequest.data.base.sha;
     const headBranch = pullrequest.data.head.ref;
+    const headCommitHash = pullrequest.data.head.sha;
     const isVersionBranch = headBranch.endsWith('_verbra');
 
-    const basePackageJson: PackageJson = await fetchPackageJson(owner, repo, baseBranch);
+    console.log(`base branch: ${baseBranch}, ref hash: ${baseCommitHash}`);
+    console.log(`head branch: ${headBranch}, ref hash: ${headCommitHash}`);
+
+    const basePackageJson: PackageJson = await fetchPackageJson(owner, repo, baseCommitHash);
     const baseVersion = basePackageJson.version as string;
 
-    const headPackageJson: PackageJson = await fetchPackageJson(owner, repo, headBranch);
+    const headPackageJson: PackageJson = await fetchPackageJson(owner, repo, headCommitHash);
     const headVersion = headPackageJson.version as string;
 
     const headSemver = semver.parse(headVersion);
