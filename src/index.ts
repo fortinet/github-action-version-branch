@@ -17,10 +17,9 @@ interface PackageJson {
     [key: string]: string;
 }
 
-async function fetchPackageJson(owner: string, repo: string, branch: string, commitHash?: string): Promise<PackageJson> {
-    const location: string = commitHash ? `blob/${commitHash}` : branch;
+async function fetchPackageJson(owner: string, repo: string, ref: string): Promise<PackageJson> {
     const basePackageJsonUrl = `https://raw.githubusercontent.com/` +
-        `${owner}/${repo}/${location}/package.json`;
+        `${owner}/${repo}/${ref}/package.json`;
 
     console.log(`reading file from: ${basePackageJsonUrl}`);
 
@@ -221,10 +220,10 @@ async function extractInfoFromPullRequest(prNumber: number): Promise<void> {
     console.log(`base branch: ${baseBranch}, ref hash: ${baseCommitHash}`);
     console.log(`head branch: ${headBranch}, ref hash: ${headCommitHash}`);
 
-    const basePackageJson: PackageJson = await fetchPackageJson(owner, repo, baseBranch, baseCommitHash);
+    const basePackageJson: PackageJson = await fetchPackageJson(owner, repo, baseCommitHash);
     const baseVersion = basePackageJson.version as string;
 
-    const headPackageJson: PackageJson = await fetchPackageJson(owner, repo, headBranch, headCommitHash);
+    const headPackageJson: PackageJson = await fetchPackageJson(owner, repo, headCommitHash);
     const headVersion = headPackageJson.version as string;
 
     const headSemver = semver.parse(headVersion);

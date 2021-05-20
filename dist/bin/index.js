@@ -14019,10 +14019,9 @@ const github = __importStar(__nccwpck_require__(5438));
 const axios_1 = __importDefault(__nccwpck_require__(6545));
 const http_status_codes_1 = __importDefault(__nccwpck_require__(2828));
 const semver_1 = __importDefault(__nccwpck_require__(1383));
-async function fetchPackageJson(owner, repo, branch, commitHash) {
-    const location = commitHash ? `blob/${commitHash}` : branch;
+async function fetchPackageJson(owner, repo, ref) {
     const basePackageJsonUrl = `https://raw.githubusercontent.com/` +
-        `${owner}/${repo}/${location}/package.json`;
+        `${owner}/${repo}/${ref}/package.json`;
     console.log(`reading file from: ${basePackageJsonUrl}`);
     const options = {
         method: 'GET',
@@ -14203,9 +14202,9 @@ async function extractInfoFromPullRequest(prNumber) {
     const isVersionBranch = headBranch.endsWith('_verbra');
     console.log(`base branch: ${baseBranch}, ref hash: ${baseCommitHash}`);
     console.log(`head branch: ${headBranch}, ref hash: ${headCommitHash}`);
-    const basePackageJson = await fetchPackageJson(owner, repo, baseBranch, baseCommitHash);
+    const basePackageJson = await fetchPackageJson(owner, repo, baseCommitHash);
     const baseVersion = basePackageJson.version;
-    const headPackageJson = await fetchPackageJson(owner, repo, headBranch, headCommitHash);
+    const headPackageJson = await fetchPackageJson(owner, repo, headCommitHash);
     const headVersion = headPackageJson.version;
     const headSemver = semver_1.default.parse(headVersion);
     const isPrerelease = headSemver.prerelease.length > 0;
